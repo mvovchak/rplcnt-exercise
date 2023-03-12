@@ -18,7 +18,7 @@
             ],
             "internalConsoleOptions": "openOnSessionStart",
             "args": [
-                "${workspaceFolder}/src/instructions.ts"
+                "${workspaceFolder}/src/index.ts"
             ],
             "env": {
                 "TS_NODE_PROJECT": "tsconfig.json"
