@@ -1,47 +1,70 @@
-import Item from "./Item";
+import Product from "./Product";
+import DateUtils from "./utils";
 
-class StoreInventory {
-    items: Array<Item>;
+export default class StoreInventory {
+  products: Product[] = [];
+  currentDate: Date = new Date();
 
-    constructor(items = [] as Array<Item> ) {
-        this.items = items;
-    }
+  constructor(products: Product[]) {
+    this.products = products;
+  }
 
-    updateQuality() {
-        for (let i = 0; i < this.items.length; i++) {
-            if (this.items[i].name != 'Cheddar Cheese') {
-                // if (this.items[i].sellIn < 3) { # Summer sale promotion
-                //     this.items[i].onSale = true;
-                // }
-                if (this.items[i].quality > 0) {
-                    if (this.items[i].name != 'Instant Ramen') {
-                        this.items[i].quality = this.items[i].quality - 1
-                    }
-                }
-            } else {
-                // if (this.items[i].sellIn < 3) { # Summer sale promotion
-                //     this.items[i].onSale = true;
-                // }              
-                if (this.items[i].quality < 50) {
-                    this.items[i].quality = this.items[i].quality + 1
-                }
-            }
-            if (this.items[i].name != 'Instant Ramen') {
-                this.items[i].sellIn = this.items[i].sellIn - 1;
-            }
-            if (this.items[i].sellIn < 0) {
-                if (this.items[i].name != 'Cheddar Cheese') {
-                    this.items[i].quality = this.items[i].quality - this.items[i].quality
-                } else {
-                    if (this.items[i].quality < 50) {
-                        this.items[i].quality = this.items[i].quality + 1
-                    }
-                }
-            }
-        }
+  moveToNextDay() {
+    this.currentDate = DateUtils.addDays(1, this.currentDate);
+    this.updateDailyQuality();
+  }
 
-        return this.items;
-    }
+  printInventory() {
+    console.log("-".repeat(process.stdout.columns));
+    console.log(
+      `Updated on: ${this.currentDate.toLocaleDateString("en-us", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      })}`
+    );
+    console.table(
+      this.products.map((product) => {
+        const sellInDays = this.getSellInDays(product.expiryDate) ?? "never";
+        return {
+          name: product.name,
+          quality: product.currentQuality,
+          "sell in (days)": sellInDays,
+          category: product.productCategory.name,
+          isRemoved: product.isRemoved ? "yes" : "no",
+        };
+      })
+    );
+  }
+
+  private getSellInDays(expiryDate?: Date): Number | undefined {
+    return !expiryDate
+      ? undefined
+      : DateUtils.getDaysBetweenDates(this.currentDate, expiryDate);
+  }
+
+  private updateDailyQuality() {
+    this.products.forEach((product) => {
+      if (product.isRemoved) {
+        return;
+      }
+
+      product.currentQuality =
+        product.currentQuality.valueOf() +
+        product.qualityChangePerDay.valueOf();
+
+      const sellInDays = this.getSellInDays(product.expiryDate);
+      if (
+        sellInDays &&
+        sellInDays.valueOf() +
+          (product.maxShelfLifeDaysAfterExpiry
+            ? product.maxShelfLifeDaysAfterExpiry.valueOf()
+            : 0) <=
+          0
+      ) {
+        product.isRemoved = true;
+      }
+    });
+  }
 }
-
-export default StoreInventory;

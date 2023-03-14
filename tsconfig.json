@@ -15,13 +15,12 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-
     "traceResolution": false,
     "listEmittedFiles": false ,
     "listFiles": false,
     "pretty": true,
     "lib": ["es2017"],
-    "types": ["node"],
+    "types": ["node", "mocha"],
     "typeRoots": ["node_modules/@types", "src/types"]
   },
   "include": ["src/**/*.ts"],

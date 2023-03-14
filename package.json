@@ -5,13 +5,14 @@
   "main": "instructions.js",
   "scripts": {
     "start": "ts-node src/index.ts",
-    "test": "ts-node src/tests/index.ts"
+    "test": "NODE_OPTIONS='--loader ts-node/esm' ./node_modules/.bin/mocha"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/chai": "^4.3.4",
+    "@types/mocha": "^10.0.1",
     "@types/node": "^18.15.0",
     "@types/sinon": "^10.0.13",
     "@types/sinon-chai": "^3.2.9",
@@ -22,6 +23,7 @@
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-n": "^15.6.1",
     "eslint-plugin-promise": "^6.1.1",
+    "mocha": "^10.2.0",
     "sinon": "^15.0.1",
     "sinon-chai": "^3.7.0",
     "ts-node": "^10.9.1",
