@@ -2,6 +2,7 @@ import chai from "chai";
 import sinonChai from "sinon-chai";
 import Product from "../Product";
 import { TProductCategory } from "../ProductCategory";
+import DateUtils from "../utils";
 
 chai.should();
 chai.use(sinonChai);
@@ -12,7 +13,7 @@ describe("Product tests", () => {
       id: "TESTCAT1",
       name: "Test category",
       qualityChangePerDay: -1,
-      qualityChangePerDayAfterExpiry: -2,
+      qualityChangePerDayAfterSellInDate: -2,
       maxShelfLifeDaysAfterExpiry: 5,
     };
 
@@ -27,9 +28,9 @@ describe("Product tests", () => {
     product.name.should.equal('Test Product');
     product.id.should.equal('PRODUCT1');
     product.productCategory.should.equal(productCategory);
-    product.expiryDate?.should.be.undefined;
+    product.sellInDate?.should.be.undefined;
     product.maxShelfLifeDaysAfterExpiry?.should.equal(5);
-    product.qualityChangePerDayAfterExpiry.should.equal(-2);
+    product.qualityChangePerDayAfterSellInDate.should.equal(-2);
     product.qualityChangePerDay.should.equal(-1);
   });
 
@@ -38,7 +39,7 @@ describe("Product tests", () => {
       id: "TESTCAT1",
       name: "Test category",
       qualityChangePerDay: -1,
-      qualityChangePerDayAfterExpiry: -2,
+      qualityChangePerDayAfterSellInDate: -2,
       maxShelfLifeDaysAfterExpiry: 5,
     };
 
@@ -48,14 +49,16 @@ describe("Product tests", () => {
       initialQuality: 1,
       productCategory,
       qualityChangePerDay: 2,
-      qualityChangePerDayAfterExpiry: 3,
+      qualityChangePerDayAfterSellInDate: 3,
       maxShelfLifeDaysAfterExpiry: 10,
+      onShelfDate: new Date(),
+      sellInDate: new Date(),
     });
 
     product.productCategory.should.equal(productCategory);
     product.maxShelfLifeDaysAfterExpiry?.should.equal(10);
     product.qualityChangePerDay.should.equal(2);
-    product.qualityChangePerDayAfterExpiry.should.equal(3);
+    product.qualityChangePerDayAfterSellInDate.should.equal(3);
   });
 
   it("should fail to create product outside quality range", () => {
@@ -64,12 +67,12 @@ describe("Product tests", () => {
         id: "PRODUCT1",
         name: "Test Product",
         initialQuality: 26,
-        expiryDate: new Date(),
+        sellInDate: new Date(),
         productCategory: {
           id: "TESTCAT1",
           name: "Test category",
           qualityChangePerDay: 1,
-          qualityChangePerDayAfterExpiry: 2,
+          qualityChangePerDayAfterSellInDate: 2,
           maxShelfLifeDaysAfterExpiry: 5,
         },
       });
@@ -80,12 +83,12 @@ describe("Product tests", () => {
         id: "PRODUCT1",
         name: "Test Product",
         initialQuality: -1,
-        expiryDate: new Date(),
+        sellInDate: new Date(),
         productCategory: {
           id: "TESTCAT1",
           name: "Test category",
           qualityChangePerDay: 1,
-          qualityChangePerDayAfterExpiry: 2,
+          qualityChangePerDayAfterSellInDate: 2,
           maxShelfLifeDaysAfterExpiry: 5,
         },
       });
@@ -97,12 +100,12 @@ describe("Product tests", () => {
         id: "PRODUCT1",
         name: "Test Product",
         initialQuality: 2,
-        expiryDate: new Date(),
+        sellInDate: new Date(),
         productCategory: {
           id: "TESTCAT1",
           name: "Test category",
           qualityChangePerDay: 1,
-          qualityChangePerDayAfterExpiry: 2,
+          qualityChangePerDayAfterSellInDate: 2,
           maxShelfLifeDaysAfterExpiry: 5,
         },
       });
@@ -116,5 +119,56 @@ describe("Product tests", () => {
       product.currentQuality = -1;
       product.currentQuality.should.equal(0);
   });
-  
+
+  it("should properly set isExpired and isPastSellIn flags", () => {
+    const productCategory: TProductCategory = {
+      id: "Fish",
+      name: "Fish",
+      qualityChangePerDay: 0,
+      qualityChangePerDayAfterSellInDate: 0,
+      maxShelfLifeDaysAfterExpiry: 0,
+    };
+
+    const product = new Product({
+      id: "SALMON",
+      name: "Salmon",
+      initialQuality: 1,
+      productCategory,
+      maxShelfLifeDaysAfterExpiry: 0,
+      onShelfDate: DateUtils.addDays(-1, new Date()),
+      sellInDate: new Date(),
+    });
+
+    product.isExpired.should.be.false;
+    product.isPastSellIn.should.be.false;
+
+    product.onShelfDate = new Date();
+    product.isExpired.should.be.false;
+    product.isPastSellIn.should.be.false;
+
+    const product2 = new Product({
+      id: "meat",
+      name: "Meat",
+      initialQuality: 1,
+      productCategory,
+      maxShelfLifeDaysAfterExpiry: 1,
+      onShelfDate: new Date(),
+      sellInDate: DateUtils.addDays(-2, new Date()),
+    });
+
+    product2.isExpired.should.be.true;
+    product2.isPastSellIn.should.be.true;
+
+    product2.onShelfDate = DateUtils.addDays(-2, new Date());
+    product2.isExpired.should.be.false;
+    product2.isPastSellIn.should.be.false;
+
+    product2.onShelfDate = DateUtils.addDays(1, new Date());
+    product2.isExpired.should.be.true;
+    product2.isPastSellIn.should.be.true;
+
+    product2.onShelfDate = DateUtils.addDays(2, new Date());
+    product2.isExpired.should.be.true;
+    product2.isPastSellIn.should.be.true;
+  });
 });

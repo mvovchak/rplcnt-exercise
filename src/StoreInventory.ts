@@ -2,16 +2,41 @@ import Product from "./Product";
 import DateUtils from "./utils";
 
 export default class StoreInventory {
-  products: Product[] = [];
-  currentDate: Date = new Date();
+  private _products: Product[] = [];
+  private _currentDate: Date = new Date();
 
   constructor(products: Product[]) {
-    this.products = products;
+    this.products = products.map((product) => {
+      return new Product({
+        ...product,
+        onShelfDate: product.onShelfDate ?? this.currentDate,
+      });
+    });
   }
 
-  moveToNextDay() {
+  public get products(): Product[] {
+    return this._products;
+  }
+
+  private set products(value: Product[]) {
+    this._products = value;
+  }
+
+  public get currentDate(): Date {
+    return this._currentDate;
+  }
+
+  private set currentDate(value: Date) {
+    this._currentDate = value;
+  }
+
+  updateInventory() {
     this.currentDate = DateUtils.addDays(1, this.currentDate);
     this.updateDailyQuality();
+  }
+
+  deleteRemovedProducts() {
+    this.products = this.products.filter(product => !product.isRemoved);
   }
 
   printInventory() {
@@ -26,7 +51,7 @@ export default class StoreInventory {
     );
     console.table(
       this.products.map((product) => {
-        const sellInDays = this.getSellInDays(product.expiryDate) ?? "never";
+        const sellInDays = product.sellInDays ?? "never";
         return {
           name: product.name,
           quality: product.currentQuality,
@@ -38,31 +63,21 @@ export default class StoreInventory {
     );
   }
 
-  private getSellInDays(expiryDate?: Date): Number | undefined {
-    return !expiryDate
-      ? undefined
-      : DateUtils.getDaysBetweenDates(this.currentDate, expiryDate);
-  }
-
   private updateDailyQuality() {
     this.products.forEach((product) => {
       if (product.isRemoved) {
         return;
       }
 
-      product.currentQuality =
-        product.currentQuality.valueOf() +
-        product.qualityChangePerDay.valueOf();
+      product.onShelfDate = new Date(this.currentDate);
 
-      const sellInDays = this.getSellInDays(product.expiryDate);
-      if (
-        sellInDays &&
-        sellInDays.valueOf() +
-          (product.maxShelfLifeDaysAfterExpiry
-            ? product.maxShelfLifeDaysAfterExpiry.valueOf()
-            : 0) <=
-          0
-      ) {
+      const newQuality = product.isPastSellIn
+        ? product.qualityChangePerDayAfterSellInDate.valueOf()
+        : product.qualityChangePerDay.valueOf();
+
+      product.currentQuality = product.currentQuality.valueOf() + newQuality;
+      
+      if (product.isExpired) {
         product.isRemoved = true;
       }
     });

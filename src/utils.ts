@@ -1,14 +1,21 @@
 const DateUtils = {
   addDays: (days: number, date: Date = new Date()): Date => {
-    return new Date(date.setDate(date.getDate() + days));
+    const newDate = new Date(date.valueOf());
+    newDate.setDate(date.getDate() + days);
+
+    return newDate;
   },
   getDaysBetweenDates: (start: Date, end: Date): Number => {
-    const oneDayMs = 1000 * 60 * 60 * 24;
-    const diffInTimeMs = end.getTime() - start.getTime();
+    const oneDayMs = 1000 * 3600 * 24;
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const startTime = startDate.getTime();
+    const endTime = endDate.getTime();
+    const diffInTimeMs =
+      startTime > endTime ? endTime - startTime : Math.abs(startTime - endTime);
 
-    const diffInDays = Math.round(diffInTimeMs / oneDayMs);
-
-    return diffInDays === 0 ? Math.abs(diffInDays) : diffInDays; // fix -0 issue IEEE
+    const diffInDays = Math.ceil(diffInTimeMs / oneDayMs);
+    return diffInDays;
   },
 };
 
