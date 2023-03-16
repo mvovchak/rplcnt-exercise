@@ -3,5 +3,5 @@ export type TProductCategory = {
   name: String;
   qualityChangePerDay: Number;
   qualityChangePerDayAfterSellInDate: Number;
-  maxShelfLifeDaysAfterExpiry?: Number;
+  maxShelfLifeDaysPastSellIn?: Number;
 };

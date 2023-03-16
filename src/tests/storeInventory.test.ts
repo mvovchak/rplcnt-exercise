@@ -9,12 +9,13 @@ import sinon from "sinon";
 chai.should();
 chai.use(sinonChai);
 
-describe("Test Store Inventory", () => {
+describe("StoreInventory", () => {
   it("should initialize product inventory with mock data", () => {
     const storeInventory: StoreInventory = new StoreInventory(products);
     storeInventory.products.should.be.an("array").that.has.length(8);
-    storeInventory.products.should.eql(products);
-    storeInventory.printInventory();
+    storeInventory.currentDate
+      .toDateString()
+      .should.eq(new Date().toDateString());
   });
 
   it("should initialize product inventory with no products", () => {
@@ -22,7 +23,7 @@ describe("Test Store Inventory", () => {
     storeInventory.products.should.be.an("array").that.is.empty;
   });
 
-  it("should update inventory with one product with shelf life and daily quality decrease", () => {
+  it("should update the inventory and its product attributes", () => {
     const storeInventory: StoreInventory = new StoreInventory([
       new Product({
         id: "PRODUCT1",
@@ -34,7 +35,7 @@ describe("Test Store Inventory", () => {
           name: "Test category",
           qualityChangePerDay: -1,
           qualityChangePerDayAfterSellInDate: -2,
-          maxShelfLifeDaysAfterExpiry: 5,
+          maxShelfLifeDaysPastSellIn: 5,
         },
       }),
     ]);
@@ -42,6 +43,7 @@ describe("Test Store Inventory", () => {
     const {
       products: [product],
     } = storeInventory;
+    const inventorySpy = sinon.spy(storeInventory, "updateInventory");
 
     storeInventory.currentDate
       .toDateString()
@@ -51,26 +53,20 @@ describe("Test Store Inventory", () => {
 
     product.initialQuality.should.eq(2);
     product.currentQuality.should.eq(2);
-    product.isRemoved.should.be.false;
+    product.isExpired.should.be.false;
     product.isExpired.should.be.false;
 
     const days = 3;
 
-    Array(days)
-      .fill(0)
-      .map((_, i) => {
-        storeInventory.updateInventory();
-        storeInventory.currentDate
-          .toDateString()
-          .should.equal(DateUtils.addDays(i + 1).toDateString());
-      });
+    Array.from(Array(days).keys()).map((_, i) => {
+      storeInventory.updateInventory();
+      storeInventory.currentDate
+        .toDateString()
+        .should.equal(DateUtils.addDays(i + 1).toDateString());
+    });
 
-    storeInventory.currentDate
-      .toDateString()
-      .should.equal(DateUtils.addDays(days).toDateString());
-    
     product.currentQuality.should.eq(0);
-    product.isRemoved.should.be.false;
+    product.isExpired.should.be.false;
     product.sellInDays?.should.eq(-3);
 
     storeInventory.updateInventory();
@@ -79,23 +75,26 @@ describe("Test Store Inventory", () => {
     product.initialQuality.should.eq(2);
     product.sellInDays?.should.eq(-4);
     product.isExpired.should.be.false;
-    product.isRemoved.should.be.false;
+    product.isExpired.should.be.false;
     product.isPastSellIn.should.be.true;
 
     storeInventory.currentDate
       .toDateString()
       .should.equal(product.onShelfDate.toDateString());
 
-    storeInventory.updateInventory();
-    storeInventory.updateInventory();
+    Array.from(Array(2).keys()).map(() => {
+      storeInventory.updateInventory();
+    });
 
     product.isExpired.should.be.true;
-    product.isRemoved.should.be.true;
+    product.isExpired.should.be.true;
     product.sellInDays?.should.eq(-6);
     product.isPastSellIn.should.be.true;
+
+    inventorySpy.should.have.callCount(6);
   });
 
-  it("should not remove non-perishable product", () => {
+  it("should not expire non-perishable product", () => {
     const product: Product = new Product({
       id: "PRODUCT1",
       name: "Test Product",
@@ -103,34 +102,32 @@ describe("Test Store Inventory", () => {
       sellInDate: undefined,
       productCategory: {
         id: "TESTCAT1",
-        name: "Test category",
+        name: "Non-perishable",
         qualityChangePerDay: 0,
         qualityChangePerDayAfterSellInDate: 0,
-        maxShelfLifeDaysAfterExpiry: undefined,
+        maxShelfLifeDaysPastSellIn: undefined,
       },
     });
     const storeInventory: StoreInventory = new StoreInventory([product]);
+    const inventorySpy = sinon.spy(storeInventory, "updateInventory");
 
     storeInventory.currentDate
       .toDateString()
       .should.equal(new Date().toDateString());
     product.initialQuality.should.eq(25);
     product.currentQuality.should.eq(25);
-    product.isRemoved.should.be.false;
     product.isExpired.should.be.false;
 
     const days = 10;
-    Array(days)
-      .fill(0)
-      .map((_, i) => {
-        storeInventory.updateInventory();
-        storeInventory.currentDate
-          .toDateString()
-          .should.equal(DateUtils.addDays(i + 1).toDateString());
-      });
+    Array.from(Array(days).keys()).map(() => {
+      storeInventory.updateInventory();
+    });
 
     product.currentQuality.should.eq(25);
-    product.isRemoved.should.be.false;
+    product.isExpired.should.be.false;
+    product.isPastSellIn.should.be.false;
+    product.sellInDays?.should.eq(0);
+    inventorySpy.should.have.callCount(10);
   });
 
   it("should update daily quality for custom product (Cheddar cheese) - no expiry + increase in quality", () => {
@@ -145,28 +142,32 @@ describe("Test Store Inventory", () => {
           name: "Test category",
           qualityChangePerDay: 1,
           qualityChangePerDayAfterSellInDate: 1,
-          maxShelfLifeDaysAfterExpiry: undefined,
+          maxShelfLifeDaysPastSellIn: undefined,
         },
       }),
     ]);
 
+    const inventorySpy = sinon.spy(storeInventory, "updateInventory");
+
     const {
       products: [product],
     } = storeInventory;
-    product.isRemoved.should.be.false;
 
-    const days = 27;
-    Array(days)
-      .fill(0)
-      .map(() => {
-        storeInventory.updateInventory();
-      });
+    product.isExpired.should.be.false;
+    product.isPastSellIn.should.be.false;
+
+    Array.from(Array(24).keys()).map(() => {
+      storeInventory.updateInventory();
+    });
 
     product.currentQuality.should.eq(25);
-    product.isRemoved.should.be.false;
+    product.isExpired.should.be.false;
+    product.isPastSellIn.should.be.false;
+    product.sellInDays?.should.eq(0);
+    inventorySpy.should.have.callCount(24);
   });
 
-  it("should update daily quality for custom product (Ramen) - non-perishable, quality stays the same", () => {
+  it("should update the inventory with a custom product (Ramen) - non-perishable, quality stays the same", () => {
     const storeInventory: StoreInventory = new StoreInventory([
       new Product({
         id: "RAMEN",
@@ -178,7 +179,7 @@ describe("Test Store Inventory", () => {
           name: "Test category",
           qualityChangePerDay: 0,
           qualityChangePerDayAfterSellInDate: 0,
-          maxShelfLifeDaysAfterExpiry: undefined,
+          maxShelfLifeDaysPastSellIn: undefined,
         },
       }),
     ]);
@@ -186,17 +187,18 @@ describe("Test Store Inventory", () => {
     const {
       products: [product],
     } = storeInventory;
+    const inventorySpy = sinon.spy(storeInventory, "updateInventory");
 
     const days = 27;
-    Array(days)
-      .fill(0)
-      .map(() => {
-        storeInventory.updateInventory();
-      });
+    Array.from(Array(days).keys()).map(() => {
+      storeInventory.updateInventory();
+    });
 
     product.currentQuality.should.eq(23);
-    product.isRemoved.should.be.false;
     product.isExpired.should.be.false;
+    product.isPastSellIn.should.be.false;
+    product.sellInDays?.should.eq(0);
+    inventorySpy.should.have.callCount(days);
   });
 
   it("should update daily quality for custom product (Organic)", () => {
@@ -212,7 +214,7 @@ describe("Test Store Inventory", () => {
           name: "Organic Products",
           qualityChangePerDay: -2,
           qualityChangePerDayAfterSellInDate: -4,
-          maxShelfLifeDaysAfterExpiry: 2,
+          maxShelfLifeDaysPastSellIn: 2,
         },
       }),
     ]);
@@ -221,11 +223,14 @@ describe("Test Store Inventory", () => {
       products: [product],
     } = storeInventory;
 
-    const inventorySpy = sinon.spy(storeInventory, 'updateInventory');
+    const inventorySpy = sinon.spy(storeInventory, "updateInventory");
 
-    Array(3)
-    .fill(0)
-    .map(() => {
+    storeInventory.updateInventory();
+    product.currentQuality.should.eq(4);
+    product.sellInDays?.should.eq(5);
+    product.isPastSellIn.should.be.false;
+
+    Array.from(Array(2).keys()).map(() => {
       storeInventory.updateInventory();
     });
 
@@ -234,43 +239,32 @@ describe("Test Store Inventory", () => {
     product.isExpired.should.be.false;
     product.isPastSellIn.should.be.false;
 
-    Array(4)
-    .fill(0)
-    .map(() => {
+    Array.from(Array(4).keys()).map(() => {
       storeInventory.updateInventory();
     });
-
-    inventorySpy.should.have.callCount(7);
 
     product.isPastSellIn.should.be.true;
-    product.sellInDays?.should.equal(-1)
-    product.isRemoved.should.be.false;
+    product.sellInDays?.should.equal(-1);
+    product.isExpired.should.be.false;
 
-    storeInventory.updateInventory();
-    storeInventory.updateInventory();
-
-    Array(4)
-    .fill(0)
-    .map(() => {
+    Array.from(Array(6).keys()).map(() => {
       storeInventory.updateInventory();
     });
 
-    product.isRemoved.should.be.true;
+    inventorySpy.should.have.callCount(13);
+
+    product.isExpired.should.be.true;
   });
 
-  it("should remove off-shelf products", () => {
+  it("should remove products from inventory", () => {
     const storeInventory: StoreInventory = new StoreInventory(products);
-    storeInventory.products.should.eql(products);
-    storeInventory.printInventory();
 
-    Array(30)
-    .fill(0)
-    .map(() => {
+    Array.from(Array(30).keys()).map(() => {
       storeInventory.updateInventory();
     });
 
     storeInventory.products.should.have.length(8);
-    storeInventory.deleteRemovedProducts();
+    storeInventory.deleteExpiredProducts();
     storeInventory.products.should.have.length(2);
   });
 });

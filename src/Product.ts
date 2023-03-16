@@ -4,11 +4,10 @@ import DateUtils from "./utils";
 export type TProduct = {
   id: String;
   name: String;
-  initialQuality: Number; // 0 to 25
+  initialQuality: Number;
   productCategory: TProductCategory;
   sellInDate?: Date;
   onShelfDate?: Date;
-  isRemoved?: Boolean;
 } & Omit<Partial<TProductCategory>, "id" | "name">;
 
 export default class Product implements TProduct {
@@ -19,10 +18,8 @@ export default class Product implements TProduct {
   readonly sellInDate?: Date;
   readonly qualityChangePerDay: Number;
   readonly qualityChangePerDayAfterSellInDate: Number;
-  readonly maxShelfLifeDaysAfterExpiry?: Number;
+  readonly maxShelfLifeDaysPastSellIn?: Number;
   private _onShelfDate: Date = new Date();
-  private _isRemoved: Boolean = false;
-
   private _currentQuality!: Number;
 
   readonly MIN_QUALITY = 0;
@@ -35,7 +32,7 @@ export default class Product implements TProduct {
     productCategory,
     sellInDate,
     onShelfDate,
-    maxShelfLifeDaysAfterExpiry,
+    maxShelfLifeDaysPastSellIn,
     qualityChangePerDay,
     qualityChangePerDayAfterSellInDate,
   }: TProduct) {
@@ -54,9 +51,9 @@ export default class Product implements TProduct {
     this.productCategory = productCategory;
     this.sellInDate = sellInDate;
     this.onShelfDate = onShelfDate ?? new Date();
-    this.maxShelfLifeDaysAfterExpiry =
-      maxShelfLifeDaysAfterExpiry ??
-      productCategory.maxShelfLifeDaysAfterExpiry;
+    this.maxShelfLifeDaysPastSellIn =
+      maxShelfLifeDaysPastSellIn ??
+      productCategory.maxShelfLifeDaysPastSellIn;
     this.qualityChangePerDay =
       qualityChangePerDay ?? productCategory.qualityChangePerDay;
     this.qualityChangePerDayAfterSellInDate =
@@ -73,9 +70,9 @@ export default class Product implements TProduct {
   public get isExpired(): Boolean {
     if (
       this.isPastSellIn &&
-      this.maxShelfLifeDaysAfterExpiry &&
-      this.sellInDays &&
-      this.sellInDays.valueOf() + this.maxShelfLifeDaysAfterExpiry.valueOf() < 0
+      this.maxShelfLifeDaysPastSellIn !== undefined &&
+      this.sellInDays !== undefined &&
+      this.sellInDays.valueOf() + this.maxShelfLifeDaysPastSellIn.valueOf() < 0
     ) {
       return true;
     }
@@ -90,17 +87,10 @@ export default class Product implements TProduct {
     return this._currentQuality;
   }
 
-  public get isRemoved(): Boolean {
-    return this._isRemoved;
-  }
-
-  public set isRemoved(value: Boolean) {
-    this._isRemoved = value;
-  }
-
   public get onShelfDate(): Date {
     return this._onShelfDate;
   }
+
   public set onShelfDate(value: Date) {
     this._onShelfDate = value;
   }

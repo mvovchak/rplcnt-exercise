@@ -7,14 +7,14 @@ export const defaultProductCategory: TProductCategory = {
   name: "Default",
   qualityChangePerDay: -1,
   qualityChangePerDayAfterSellInDate: -2,
-  maxShelfLifeDaysAfterExpiry: 5,
+  maxShelfLifeDaysPastSellIn: 5,
 };
 
 export const organicProductCategory: TProductCategory = {
   id: "ORGANIC",
   name: "Organic Products",
   qualityChangePerDay: -2,
-  maxShelfLifeDaysAfterExpiry: 5,
+  maxShelfLifeDaysPastSellIn: 5,
   qualityChangePerDayAfterSellInDate: -4,
 };
 
@@ -54,7 +54,7 @@ export const products: Product[] = [
     name: "Instant Ramen",
     initialQuality: 25,
     productCategory: defaultProductCategory, // Could be a special category instead (non-perishable)
-    maxShelfLifeDaysAfterExpiry: undefined,
+    maxShelfLifeDaysPastSellIn: undefined,
     qualityChangePerDay: 0,
     qualityChangePerDayAfterSellInDate: 0,
   }),
