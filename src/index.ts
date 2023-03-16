@@ -5,7 +5,9 @@ const storeInventory: StoreInventory = new StoreInventory(products);
 
 storeInventory.printInventory();
 
-for (let index = 1; index <= 30; index++) {
+const days = 30;
+
+Array(days).fill(0).map(() => {
   storeInventory.updateInventory();
   storeInventory.printInventory();
-}
+})

@@ -79,17 +79,4 @@ export const products: Product[] = [
     productCategory: organicProductCategory,
     sellInDate: DateUtils.addDays(-4),
   }),
-  /*   new Product({
-        id: "INVALID_PRODUCT1",
-        name: "INVALID_PRODUCT1",
-        initialQuality: 25,
-        productCategory: DefaultProductCategory,
-        sellInDate: DateUtils.addDays(-1),
-      }),
-      new Product({
-        id: "INVALID_PRODUCT2",
-        name: "INVALID_PRODUCT2",
-        initialQuality: -1,
-        productCategory: DefaultProductCategory,
-      }), */
 ];

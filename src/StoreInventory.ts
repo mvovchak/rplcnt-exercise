@@ -18,16 +18,16 @@ export default class StoreInventory {
     return this._products;
   }
 
-  private set products(value: Product[]) {
-    this._products = value;
+  private set products(products: Product[]) {
+    this._products = products;
   }
 
   public get currentDate(): Date {
     return this._currentDate;
   }
 
-  private set currentDate(value: Date) {
-    this._currentDate = value;
+  private set currentDate(currentDate: Date) {
+    this._currentDate = currentDate;
   }
 
   updateInventory() {
@@ -36,7 +36,7 @@ export default class StoreInventory {
   }
 
   deleteRemovedProducts() {
-    this.products = this.products.filter(product => !product.isRemoved);
+    this.products = this.products.filter((product) => !product.isRemoved);
   }
 
   printInventory() {
@@ -76,7 +76,7 @@ export default class StoreInventory {
         : product.qualityChangePerDay.valueOf();
 
       product.currentQuality = product.currentQuality.valueOf() + newQuality;
-      
+
       if (product.isExpired) {
         product.isRemoved = true;
       }
