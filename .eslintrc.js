@@ -5,12 +5,39 @@ module.exports = {
     es2021: true
   },
   extends: 'standard-with-typescript',
-  overrides: [
-  ],
+  overrides: [],
   parserOptions: {
-    ecmaVersion: 'latest'
+    ecmaVersion: 'latest',
+    project: './tsconfig.json'
   },
   rules: {
-    'max-len': ['warn', { code: 80, ignoreComments: true }]
+    quotes: [
+      'error',
+      'single',
+      {
+        allowTemplateLiterals: true
+      }
+    ],
+    'max-len': ['error', { code: 80, ignoreComments: true }],
+    semi: 'off',
+    '@typescript-eslint/semi': [2, 'always'],
+    '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+    'space-before-function-paren': 'off',
+    '@typescript-eslint/space-before-function-paren': 'off',
+    '@typescript-eslint/member-delimiter-style': [
+      'error',
+      {
+        overrides: {
+          typeLiteral: {
+            multiline: {
+              delimiter: 'semi'
+            },
+            singleline: {
+              delimiter: 'semi'
+            }
+          }
+        }
+      }
+    ]
   }
-}
+};

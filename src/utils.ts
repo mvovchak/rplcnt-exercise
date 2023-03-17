@@ -5,7 +5,7 @@ const DateUtils = {
 
     return newDate;
   },
-  getDaysBetweenDates: (start: Date, end: Date): Number => {
+  getDaysBetweenDates: (start: Date, end: Date): number => {
     const oneDayMs = 1000 * 3600 * 24;
     const startDate = new Date(start);
     const endDate = new Date(end);
@@ -16,7 +16,7 @@ const DateUtils = {
 
     const diffInDays = Math.ceil(diffInTimeMs / oneDayMs);
     return diffInDays;
-  },
+  }
 };
 
 export default DateUtils;

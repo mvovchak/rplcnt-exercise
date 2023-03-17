@@ -1,26 +1,26 @@
-import { TProductCategory } from "./ProductCategory";
-import DateUtils from "./utils";
+import type { TProductCategory } from './ProductCategory';
+import DateUtils from './utils';
 
 export type TProduct = {
-  id: String;
-  name: String;
-  initialQuality: Number;
+  id: string;
+  name: string;
+  initialQuality: number;
   productCategory: TProductCategory;
   sellInDate?: Date;
   onShelfDate?: Date;
-} & Omit<Partial<TProductCategory>, "id" | "name">;
+} & Omit<Partial<TProductCategory>, 'id' | 'name'>;
 
 export default class Product implements TProduct {
-  readonly id!: String;
-  readonly name!: String;
-  readonly initialQuality!: Number;
+  readonly id!: string;
+  readonly name!: string;
+  readonly initialQuality!: number;
   readonly productCategory!: TProductCategory;
   readonly sellInDate?: Date;
-  readonly qualityChangePerDay: Number;
-  readonly qualityChangePerDayAfterSellInDate: Number;
-  readonly maxShelfLifeDaysPastSellIn?: Number;
+  readonly qualityChangePerDay: number;
+  readonly qualityChangePerDayAfterSellInDate: number;
+  readonly maxShelfLifeDaysPastSellIn?: number;
   private _onShelfDate: Date = new Date();
-  private _currentQuality!: Number;
+  private _currentQuality!: number;
 
   readonly MIN_QUALITY = 0;
   readonly MAX_QUALITY = 25;
@@ -34,14 +34,15 @@ export default class Product implements TProduct {
     onShelfDate,
     maxShelfLifeDaysPastSellIn,
     qualityChangePerDay,
-    qualityChangePerDayAfterSellInDate,
+    qualityChangePerDayAfterSellInDate
   }: TProduct) {
     if (
       initialQuality < this.MIN_QUALITY ||
       initialQuality > this.MAX_QUALITY
     ) {
       throw RangeError(
-        `Initial quality should be a number between ${this.MIN_QUALITY} and ${this.MAX_QUALITY}`
+        `Initial quality should be a number between \
+        ${this.MIN_QUALITY} and ${this.MAX_QUALITY}`
       );
     }
     this.id = id;
@@ -52,8 +53,7 @@ export default class Product implements TProduct {
     this.sellInDate = sellInDate;
     this.onShelfDate = onShelfDate ?? new Date();
     this.maxShelfLifeDaysPastSellIn =
-      maxShelfLifeDaysPastSellIn ??
-      productCategory.maxShelfLifeDaysPastSellIn;
+      maxShelfLifeDaysPastSellIn ?? productCategory.maxShelfLifeDaysPastSellIn;
     this.qualityChangePerDay =
       qualityChangePerDay ?? productCategory.qualityChangePerDay;
     this.qualityChangePerDayAfterSellInDate =
@@ -61,13 +61,13 @@ export default class Product implements TProduct {
       productCategory.qualityChangePerDayAfterSellInDate;
   }
 
-  public get sellInDays(): Number | undefined {
-    return this.sellInDate
+  public get sellInDays(): number | undefined {
+    return this.sellInDate !== undefined
       ? DateUtils.getDaysBetweenDates(this.onShelfDate, this.sellInDate)
       : undefined;
   }
 
-  public get isExpired(): Boolean {
+  public get isExpired(): boolean {
     if (
       this.isPastSellIn &&
       this.maxShelfLifeDaysPastSellIn !== undefined &&
@@ -79,12 +79,22 @@ export default class Product implements TProduct {
     return false;
   }
 
-  public get isPastSellIn(): Boolean {
+  public get isPastSellIn(): boolean {
     return (this.sellInDays ?? 0) < 0;
   }
 
-  public get currentQuality(): Number {
+  public get currentQuality(): number {
     return this._currentQuality;
+  }
+
+  public set currentQuality(quality: number) {
+    if (quality < this.MIN_QUALITY) {
+      this._currentQuality = this.MIN_QUALITY;
+    } else if (quality > this.MAX_QUALITY) {
+      this._currentQuality = this.MAX_QUALITY;
+    } else {
+      this._currentQuality = quality;
+    }
   }
 
   public get onShelfDate(): Date {
@@ -93,15 +103,5 @@ export default class Product implements TProduct {
 
   public set onShelfDate(value: Date) {
     this._onShelfDate = value;
-  }
-
-  public set currentQuality(quality: Number) {
-    if (quality < this.MIN_QUALITY) {
-      this._currentQuality = this.MIN_QUALITY;
-    } else if (quality > this.MAX_QUALITY) {
-      this._currentQuality = this.MAX_QUALITY;
-    } else {
-      this._currentQuality = quality;
-    }
   }
 }

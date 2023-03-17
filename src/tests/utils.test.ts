@@ -1,10 +1,10 @@
-import chai from "chai";
-import DateUtils from "../utils";
+import chai from 'chai';
+import DateUtils from '../utils';
 
 chai.should();
 
-describe("Date Utils", () => {
-  it("should add days to a date", () => {
+describe('Date Utils', () => {
+  it('should add days to a date', () => {
     const date1 = DateUtils.addDays(10, new Date('March 1, 2023'));
     date1.should.eql(new Date('March 11, 2023'));
 
@@ -18,10 +18,22 @@ describe("Date Utils", () => {
     date4.should.eql(new Date('March 11, 2024'));
   });
 
-  it("should return difference in days between two dates", () => {
-    DateUtils.getDaysBetweenDates(new Date('March 1, 2023'), new Date('March 31, 2023')).should.eq(30);
-    DateUtils.getDaysBetweenDates(new Date('January 21, 2023'), new Date('January 15, 2023')).should.eq(-6);
-    DateUtils.getDaysBetweenDates(new Date('January 21, 2023'), new Date('January 21, 2023')).should.eq(0);
-    DateUtils.getDaysBetweenDates(new Date('January 1, 2023'), new Date('January 1, 2025')).should.eq(731);
+  it('should return difference in days between two dates', () => {
+    DateUtils.getDaysBetweenDates(
+      new Date('March 1, 2023'),
+      new Date('March 31, 2023')
+    ).should.eq(30);
+    DateUtils.getDaysBetweenDates(
+      new Date('January 21, 2023'),
+      new Date('January 15, 2023')
+    ).should.eq(-6);
+    DateUtils.getDaysBetweenDates(
+      new Date('January 21, 2023'),
+      new Date('January 21, 2023')
+    ).should.eq(0);
+    DateUtils.getDaysBetweenDates(
+      new Date('January 1, 2023'),
+      new Date('January 1, 2025')
+    ).should.eq(731);
   });
 });

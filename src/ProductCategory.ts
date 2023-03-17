@@ -1,7 +1,7 @@
 export type TProductCategory = {
-  id: String;
-  name: String;
-  qualityChangePerDay: Number;
-  qualityChangePerDayAfterSellInDate: Number;
-  maxShelfLifeDaysPastSellIn?: Number;
+  id: string;
+  name: string;
+  qualityChangePerDay: number;
+  qualityChangePerDayAfterSellInDate: number;
+  maxShelfLifeDaysPastSellIn?: number;
 };

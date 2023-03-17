@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 class Item {
     name: string;
     sellIn: number; // #MV# unclear property name

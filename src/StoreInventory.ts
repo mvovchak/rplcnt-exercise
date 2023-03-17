@@ -1,5 +1,5 @@
-import Product from "./Product";
-import DateUtils from "./utils";
+import Product from './Product';
+import DateUtils from './utils';
 
 export default class StoreInventory {
   private _products: Product[] = [];
@@ -9,44 +9,44 @@ export default class StoreInventory {
     this.products = products.map((product) => {
       return new Product({
         ...product,
-        onShelfDate: this.currentDate,
+        onShelfDate: this.currentDate
       });
     });
   }
 
-  public updateInventory() {
+  public updateInventory(): void {
     this.currentDate = DateUtils.addDays(1, this.currentDate);
     this.updateDailyQuality();
     // this.deleteExpiredProducts(); could be called here to remove expired products from the system
   }
 
-  public deleteExpiredProducts() {
+  public deleteExpiredProducts(): void {
     this.products = this.products.filter((product) => !product.isExpired);
   }
 
-  public printInventory() {
-    console.log("-".repeat(process.stdout.columns));
+  public printInventory(): void {
+    console.log('-'.repeat(process.stdout.columns));
     console.log(
-      `Updated on: ${this.currentDate.toLocaleDateString("en-us", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-        year: "numeric",
+      `Updated on: ${this.currentDate.toLocaleDateString('en-us', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
       })}`
     );
     console.table(
       this.products.map((product) => ({
         name: product.name,
         quality: product.currentQuality,
-        sellInDays: product.sellInDays ?? "-",
+        sellInDays: product.sellInDays ?? '-',
         category: product.productCategory.name,
-        expired: product.isExpired ? "yes" : "no",
-        pastSellIn: product.isPastSellIn ? "yes" : "no",
+        expired: product.isExpired ? 'yes' : 'no',
+        pastSellIn: product.isPastSellIn ? 'yes' : 'no'
       }))
     );
   }
 
-  private updateDailyQuality() {
+  private updateDailyQuality(): void {
     this.products.forEach((product) => {
       product.onShelfDate = new Date(this.currentDate);
 
