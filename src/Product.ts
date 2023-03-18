@@ -1,3 +1,5 @@
+'use strict';
+
 import type { TProductCategory } from './ProductCategory';
 import DateUtils from './utils';
 

@@ -1,3 +1,5 @@
+'use strict';
+
 import { products } from './mockData';
 import StoreInventory from './StoreInventory';
 

@@ -1,3 +1,5 @@
+'use strict';
+
 import Product from './Product';
 import DateUtils from './utils';
 

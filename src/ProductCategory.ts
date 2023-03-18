@@ -1,3 +1,5 @@
+'use strict';
+
 export type TProductCategory = {
   id: string;
   name: string;

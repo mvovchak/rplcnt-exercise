@@ -1,3 +1,5 @@
+'use strict';
+
 import chai from 'chai';
 import DateUtils from '../utils';
 

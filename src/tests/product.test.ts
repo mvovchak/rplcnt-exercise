@@ -1,3 +1,4 @@
+'use strict';
 /* eslint-disable no-new */
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 

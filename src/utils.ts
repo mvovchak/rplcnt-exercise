@@ -1,3 +1,5 @@
+'use strict';
+
 const DateUtils = {
   addDays: (days: number, date: Date = new Date()): Date => {
     const newDate = new Date(date.valueOf());

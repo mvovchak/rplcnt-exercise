@@ -1,10 +1,12 @@
 'use strict';
-/* eslint-disable no-new */
-/* eslint-disable @typescript-eslint/no-unused-expressions */
-/* eslint-disable @typescript-eslint/ban-types */
-/* eslint-disable @typescript-eslint/no-var-requires */
 
 // Utils
+
+/**
+ * DateUtils
+ *
+ * @type {{ addDays: (days: number, date: Date) => Date; getDaysBetweenDates: (start: Date, end: Date) => number; }}
+ */
 const DateUtils = {
   addDays: (days: number, date: Date = new Date()): Date => {
     const newDate = new Date(date.valueOf());
@@ -27,6 +29,12 @@ const DateUtils = {
 };
 
 // Types
+
+/**
+ * Product Category Type
+ *
+ * @typedef {TProductCategory}
+ */
 type TProductCategory = {
   id: string;
   name: string;
@@ -35,6 +43,11 @@ type TProductCategory = {
   maxShelfLifeDaysPastSellIn?: number;
 };
 
+/**
+ * Product Type
+ *
+ * @typedef {TProduct}
+ */
 type TProduct = {
   id: string;
   name: string;
@@ -44,7 +57,13 @@ type TProduct = {
   onShelfDate?: Date;
 } & Omit<Partial<TProductCategory>, 'id' | 'name'>;
 
-// Product model
+/**
+ * Product Model
+ *
+ * @class Product
+ * @typedef {Product}
+ * @implements {TProduct}
+ */
 class Product implements TProduct {
   readonly id!: string;
   readonly name!: string;
@@ -77,7 +96,7 @@ class Product implements TProduct {
     ) {
       throw RangeError(
         `Initial quality should be a number between \
-          ${this.MIN_QUALITY} and ${this.MAX_QUALITY}`
+        ${this.MIN_QUALITY} and ${this.MAX_QUALITY}`
       );
     }
     this.id = id;
@@ -96,12 +115,26 @@ class Product implements TProduct {
       productCategory.qualityChangePerDayAfterSellInDate;
   }
 
+  /**
+   * How many days left after sellIn date passed (if product has sellIn)
+   *
+   * @public
+   * @readonly
+   * @type {(number | undefined)}
+   */
   public get sellInDays(): number | undefined {
     return this.sellInDate !== undefined
       ? DateUtils.getDaysBetweenDates(this.onShelfDate, this.sellInDate)
       : undefined;
   }
 
+  /**
+   * Product is expired and should be removed from the shelf
+   *
+   * @public
+   * @readonly
+   * @type {boolean}
+   */
   public get isExpired(): boolean {
     if (
       this.isPastSellIn &&
@@ -114,14 +147,33 @@ class Product implements TProduct {
     return false;
   }
 
+  /**
+   * Is past sell in date
+   *
+   * @public
+   * @readonly
+   * @type {boolean}
+   */
   public get isPastSellIn(): boolean {
     return (this.sellInDays ?? 0) < 0;
   }
 
+  /**
+   * Get current quality
+   *
+   * @public
+   * @type {number}
+   */
   public get currentQuality(): number {
     return this._currentQuality;
   }
 
+  /**
+   * Get current quality, if outside range set to min/max range accordingly
+   *
+   * @public
+   * @returns number
+   */
   public set currentQuality(quality: number) {
     if (quality < this.MIN_QUALITY) {
       this._currentQuality = this.MIN_QUALITY;
@@ -132,15 +184,33 @@ class Product implements TProduct {
     }
   }
 
+  /**
+   * Get date on shelf (current date)
+   *
+   * @public
+   * @type {Date}
+   */
   public get onShelfDate(): Date {
     return this._onShelfDate;
   }
 
+  /**
+   * Set date on shelf (current date)
+   *
+   * @public
+   * @type {Date}
+   */
   public set onShelfDate(value: Date) {
     this._onShelfDate = value;
   }
 }
 
+/**
+ * Store inventory, holds products and updates the daily quality
+ *
+ * @class StoreInventory
+ * @typedef {StoreInventory}
+ */
 class StoreInventory {
   private _products: Product[] = [];
   private _currentDate: Date = new Date();
@@ -154,16 +224,31 @@ class StoreInventory {
     });
   }
 
+  /**
+   * Updates daily store inventory
+   *
+   * @public
+   */
   public updateInventory(): void {
     this.currentDate = DateUtils.addDays(1, this.currentDate);
     this.updateDailyQuality();
     // this.deleteExpiredProducts(); could be called here to remove expired products from the system
   }
 
+  /**
+   * Deletes products that are expired
+   *
+   * @public
+   */
   public deleteExpiredProducts(): void {
     this.products = this.products.filter((product) => !product.isExpired);
   }
 
+  /**
+   * Prints current inventory
+   *
+   * @public
+   */
   public printInventory(): void {
     console.log('-'.repeat(process.stdout.columns));
     console.log(
@@ -186,6 +271,11 @@ class StoreInventory {
     );
   }
 
+  /**
+   * Updates daily quality
+   *
+   * @private
+   */
   private updateDailyQuality(): void {
     this.products.forEach((product) => {
       product.onShelfDate = new Date(this.currentDate);
@@ -198,18 +288,38 @@ class StoreInventory {
     });
   }
 
+  /**
+   * Get all products
+   *
+   * @private
+   */
   public get products(): Product[] {
     return this._products;
   }
 
+  /**
+   * Set new products
+   *
+   * @private
+   */
   private set products(products: Product[]) {
     this._products = products;
   }
 
+  /**
+   * Get inventory's current date
+   *
+   * @private
+   */
   public get currentDate(): Date {
     return this._currentDate;
   }
 
+  /**
+   * Set inventory's current date
+   *
+   * @private
+   */
   private set currentDate(currentDate: Date) {
     this._currentDate = currentDate;
   }
@@ -296,6 +406,7 @@ const products: Product[] = [
   })
 ];
 
+// ---------------------------------------------
 // Implementation
 const storeInventory: StoreInventory = new StoreInventory(products);
 
@@ -303,43 +414,40 @@ storeInventory.printInventory();
 
 const days = 30;
 
-Array.from(Array(days).keys()).forEach(() => {
+Array.from(Array(days).keys()).map(() => {
   storeInventory.updateInventory();
   storeInventory.printInventory();
 });
 
 // Tests
+const chai = require('chai');
 const sinon = require('sinon');
 const sinonChai = require('sinon-chai');
-const chai = require('chai');
-// const { expect, assert } = chai;
+
+const { expect, assert } = chai;
 chai.should();
 chai.use(sinonChai);
 
-const { expect } = chai;
-chai.should();
-chai.use(sinonChai);
+const describe = (name: string, cb: Function) => {
+  console.log(name);
+  console.group();
+  cb();
+  console.groupEnd();
+};
 
-// const describe = (name: string, cb: Function) => {
-//   console.log(name);
-//   console.group();
-//   cb();
-//   console.groupEnd();
-// };
-
-// let passingTestsCount = 0;
-// let failedTestsCount = 0;
-// const it = (name: string, cb: Function) => {
-//   try {
-//     cb();
-//     passingTestsCount++;
-//     console.log(`✅ ${name}`);
-//   } catch (e) {
-//     failedTestsCount++;
-//     console.warn(`❌ ${name}`);
-//     console.error(e);
-//   }
-// };
+let passingTestsCount = 0;
+let failedTestsCount = 0;
+const it = (name: string, cb: Function) => {
+  try {
+    cb();
+    passingTestsCount++;
+    console.log(`✅ ${name}`);
+  } catch (e) {
+    failedTestsCount++;
+    console.warn(`❌ ${name}`);
+    console.error(e);
+  }
+};
 
 describe('Date Utils', () => {
   it('should add days to a date', () => {
@@ -836,3 +944,6 @@ describe('StoreInventory', () => {
     expect(storeInventory.products).to.have.length(2);
   });
 });
+
+console.log('Passing', passingTestsCount);
+console.log('Failed', failedTestsCount);
