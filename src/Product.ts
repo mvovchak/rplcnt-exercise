@@ -3,6 +3,11 @@
 import type { TProductCategory } from './ProductCategory';
 import DateUtils from './utils';
 
+enum ProductQualityRange {
+  Min = 0,
+  Max = 25
+}
+
 export type TProduct = {
   id: string;
   name: string;
@@ -39,8 +44,8 @@ export default class Product implements TProduct {
     qualityChangePerDayAfterSellInDate
   }: TProduct) {
     if (
-      initialQuality < this.MIN_QUALITY ||
-      initialQuality > this.MAX_QUALITY
+      initialQuality < ProductQualityRange.Min ||
+      initialQuality > ProductQualityRange.Max
     ) {
       throw RangeError(
         `Initial quality should be a number between \
@@ -90,13 +95,19 @@ export default class Product implements TProduct {
   }
 
   public set currentQuality(quality: number) {
-    if (quality < this.MIN_QUALITY) {
-      this._currentQuality = this.MIN_QUALITY;
-    } else if (quality > this.MAX_QUALITY) {
-      this._currentQuality = this.MAX_QUALITY;
+    if (quality < ProductQualityRange.Min) {
+      this._currentQuality = ProductQualityRange.Min;
+    } else if (quality > ProductQualityRange.Min) {
+      this._currentQuality = ProductQualityRange.Min;
     } else {
       this._currentQuality = quality;
     }
+  }
+
+  public get isQualityOutOfRange(quality: number): boolean {
+    return (
+      quality < ProductQualityRange.Min || quality > ProductQualityRange.Max
+    );
   }
 
   public get onShelfDate(): Date {
