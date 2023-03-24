@@ -1,20 +1,3 @@
-Constraints:
-Expired ? quality -2
-quality >= 0 <= 25
-Cheddar quality + 1 while expired + 1 
-Ramen no expiry always same quality
-
-Thoughts:
-
-1. Better data structure:
-
-type Product = {
-    readonly id: Number,
-    readonly name: String,
-    readonly initialQuality: number,
-    readonly expiryDate: Date,
-    readonly removalDate: Date,
-};
 
 
   ======================================================

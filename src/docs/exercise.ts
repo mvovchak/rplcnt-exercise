@@ -20,7 +20,7 @@ class StoreInventory {
         this.items = items;
     }
 
-    updateQuality() {
+    updateQuality() { // no return type
         for (let i = 0; i < this.items.length; i++) { // #MV#: simpler with array methods like items.forEach
             
              // #MV#: Logic seems overly complex and contains errors
@@ -36,7 +36,7 @@ class StoreInventory {
                 // }
                 if (this.items[i].quality > 0) {
                     if (this.items[i].name != 'Instant Ramen') {
-                        this.items[i].quality = this.items[i].quality - 1
+                        this.items[i].quality = this.items[i].quality - 1 //styling
                     }
                 }
             } else { // #MV# unclear this is for Cheddar cheese

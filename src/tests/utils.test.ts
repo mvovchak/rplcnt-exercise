@@ -1,7 +1,7 @@
 'use strict';
 
 import chai from 'chai';
-import DateUtils from '../utils';
+import { DateUtils } from '../utils';
 
 chai.should();
 

@@ -1,7 +1,7 @@
 'use strict';
 
 import type { TProductCategory } from './ProductCategory';
-import DateUtils from './utils';
+import { DateUtils } from './utils';
 
 enum ProductQualityRange {
   Min = 0,
@@ -17,6 +17,14 @@ export type TProduct = {
   onShelfDate?: Date;
 } & Omit<Partial<TProductCategory>, 'id' | 'name'>;
 
+/**
+ * Product representation
+ *
+ * @export
+ * @class Product
+ * @typedef {Product}
+ * @implements {TProduct}
+ */
 export default class Product implements TProduct {
   readonly id!: string;
   readonly name!: string;
@@ -29,9 +37,6 @@ export default class Product implements TProduct {
   private _onShelfDate: Date = new Date();
   private _currentQuality!: number;
 
-  readonly MIN_QUALITY = 0;
-  readonly MAX_QUALITY = 25;
-
   constructor({
     id,
     name,
@@ -43,15 +48,13 @@ export default class Product implements TProduct {
     qualityChangePerDay,
     qualityChangePerDayAfterSellInDate
   }: TProduct) {
-    if (
-      initialQuality < ProductQualityRange.Min ||
-      initialQuality > ProductQualityRange.Max
-    ) {
+    if (this.isQualityOutOfRange(initialQuality)) {
       throw RangeError(
         `Initial quality should be a number between \
-        ${this.MIN_QUALITY} and ${this.MAX_QUALITY}`
+        ${ProductQualityRange.Min} and ${ProductQualityRange.Max}`
       );
     }
+
     this.id = id;
     this.name = name;
     this.initialQuality = initialQuality;
@@ -59,10 +62,13 @@ export default class Product implements TProduct {
     this.productCategory = productCategory;
     this.sellInDate = sellInDate;
     this.onShelfDate = onShelfDate ?? new Date();
+
     this.maxShelfLifeDaysPastSellIn =
       maxShelfLifeDaysPastSellIn ?? productCategory.maxShelfLifeDaysPastSellIn;
+
     this.qualityChangePerDay =
       qualityChangePerDay ?? productCategory.qualityChangePerDay;
+
     this.qualityChangePerDayAfterSellInDate =
       qualityChangePerDayAfterSellInDate ??
       productCategory.qualityChangePerDayAfterSellInDate;
@@ -75,15 +81,11 @@ export default class Product implements TProduct {
   }
 
   public get isExpired(): boolean {
-    if (
-      this.isPastSellIn &&
-      this.maxShelfLifeDaysPastSellIn !== undefined &&
-      this.sellInDays !== undefined &&
-      this.sellInDays.valueOf() + this.maxShelfLifeDaysPastSellIn.valueOf() < 0
-    ) {
-      return true;
-    }
-    return false;
+    return this.isPastSellIn && this.isPastMaxShelfLife();
+  }
+
+  private isPastMaxShelfLife(): boolean {
+    return (this.sellInDays ?? 0) + (this.maxShelfLifeDaysPastSellIn ?? 0) < 0;
   }
 
   public get isPastSellIn(): boolean {
@@ -97,14 +99,14 @@ export default class Product implements TProduct {
   public set currentQuality(quality: number) {
     if (quality < ProductQualityRange.Min) {
       this._currentQuality = ProductQualityRange.Min;
-    } else if (quality > ProductQualityRange.Min) {
-      this._currentQuality = ProductQualityRange.Min;
+    } else if (quality > ProductQualityRange.Max) {
+      this._currentQuality = ProductQualityRange.Max;
     } else {
       this._currentQuality = quality;
     }
   }
 
-  public get isQualityOutOfRange(quality: number): boolean {
+  private isQualityOutOfRange(quality: number): boolean {
     return (
       quality < ProductQualityRange.Min || quality > ProductQualityRange.Max
     );
@@ -118,3 +120,13 @@ export default class Product implements TProduct {
     this._onShelfDate = value;
   }
 }
+
+/*
+Possible onSale representation
+ offers: Offer[] [{
+  name: 'Summer Promotion'}
+  startDate: Date!
+  endDate: Date!
+  sellInLessThen: Number!
+}]
+ */

@@ -2,7 +2,7 @@
 
 import Product from './Product';
 import type { TProductCategory } from './ProductCategory';
-import DateUtils from './utils';
+import { DateUtils } from './utils';
 
 export const defaultProductCategory: TProductCategory = {
   id: 'DEFAULT',
@@ -58,7 +58,7 @@ export const products: Product[] = [
     productCategory: defaultProductCategory, // Could be a special category instead (non-perishable)
     maxShelfLifeDaysPastSellIn: undefined,
     qualityChangePerDay: 0,
-    qualityChangePerDayAfterSellInDate: 0
+    qualityChangePerDayAfterSellInDate: 10
   }),
   new Product({
     id: 'ORG_AVOCADO',

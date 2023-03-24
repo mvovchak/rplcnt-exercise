@@ -6,7 +6,7 @@ import StoreInventory from '../StoreInventory';
 import chai from 'chai';
 import sinonChai from 'sinon-chai';
 import { products } from '../mockData';
-import DateUtils from '../utils';
+import { DateUtils } from '../utils';
 import Product from '../Product';
 import sinon from 'sinon';
 
@@ -58,6 +58,7 @@ describe('StoreInventory', () => {
     product.initialQuality.should.eq(2);
     product.currentQuality.should.eq(2);
     product.isExpired.should.be.false;
+    product.sellInDays?.should.eq(0);
 
     const days = 3;
 
@@ -66,6 +67,7 @@ describe('StoreInventory', () => {
       storeInventory.currentDate
         .toDateString()
         .should.equal(DateUtils.addDays(i + 1).toDateString());
+      product.sellInDays?.should.eq(-(1 + i));
     });
 
     product.currentQuality.should.eq(0);
@@ -252,9 +254,10 @@ describe('StoreInventory', () => {
       storeInventory.updateInventory();
     });
 
-    inventorySpy.should.have.callCount(13);
-
     product.isExpired.should.be.true;
+    product.isPastSellIn.should.be.true;
+
+    inventorySpy.should.have.callCount(13);
   });
 
   it('should remove products from inventory', () => {
@@ -265,7 +268,15 @@ describe('StoreInventory', () => {
     });
 
     storeInventory.products.should.have.length(8);
+
     storeInventory.deleteExpiredProducts();
     storeInventory.products.should.have.length(2);
+    storeInventory.products.forEach((product) => {
+      product.isExpired.should.be.false;
+      product.isPastSellIn.should.be.false;
+      product.sellInDays?.should.eq(0);
+      product.sellInDate?.should.be.undefined;
+      product.currentQuality.should.eq(25);
+    });
   });
 });

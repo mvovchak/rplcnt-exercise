@@ -6,7 +6,8 @@ import chai from 'chai';
 import sinonChai from 'sinon-chai';
 import Product from '../Product';
 import { type TProductCategory } from '../ProductCategory';
-import DateUtils from '../utils';
+import { DateUtils } from '../utils';
+import { defaultProductCategory } from '../mockData';
 
 chai.should();
 chai.use(sinonChai);
@@ -81,13 +82,7 @@ describe('Product', () => {
         name: 'Test Product',
         initialQuality: invalidQuality,
         sellInDate: new Date(),
-        productCategory: {
-          id: 'TESTCAT1',
-          name: 'Test category',
-          qualityChangePerDay: 1,
-          qualityChangePerDayAfterSellInDate: 2,
-          maxShelfLifeDaysPastSellIn: 5
-        }
+        productCategory: defaultProductCategory
       });
     }).should.throw(RangeError);
 
@@ -97,13 +92,7 @@ describe('Product', () => {
         id: 'PRODUCT1',
         name: 'Test Product',
         initialQuality: invalidQuality,
-        productCategory: {
-          id: 'TESTCAT1',
-          name: 'Test category',
-          qualityChangePerDay: 1,
-          qualityChangePerDayAfterSellInDate: 2,
-          maxShelfLifeDaysPastSellIn: 5
-        }
+        productCategory: defaultProductCategory
       });
     }).should.throw(RangeError);
   });
@@ -133,25 +122,31 @@ describe('Product', () => {
 
     product.currentQuality = -1;
     product.currentQuality.should.equal(0);
+
+    product.currentQuality = 25;
+    product.currentQuality.should.equal(25);
+
+    product.currentQuality = 0;
+    product.currentQuality.should.equal(0);
   });
 
   it('should update product attributes on shelf date change', () => {
     const productCategory: TProductCategory = {
       id: 'Fish',
       name: 'Fish',
-      qualityChangePerDay: 0,
-      qualityChangePerDayAfterSellInDate: 0,
-      maxShelfLifeDaysPastSellIn: 0
+      qualityChangePerDay: 0, // no change in quality per day
+      qualityChangePerDayAfterSellInDate: 0, // no change in quality after sellin
+      maxShelfLifeDaysPastSellIn: 0 // should expire right after sellin is < 0
     };
 
     const currentDate = new Date('January 18, 2022');
 
+    // Product expiring in 1 day
     const product = new Product({
       id: 'SALMON',
       name: 'Salmon',
       initialQuality: 1,
       productCategory,
-      maxShelfLifeDaysPastSellIn: 0,
       onShelfDate: DateUtils.addDays(-1, currentDate),
       sellInDate: currentDate
     });
@@ -160,18 +155,21 @@ describe('Product', () => {
     product.isPastSellIn.should.be.false;
     product.sellInDays?.should.equal(1);
 
+    // Product expiring today
     product.onShelfDate = currentDate;
 
     product.isExpired.should.be.false;
     product.isPastSellIn.should.be.false;
     product.sellInDays?.should.equal(0);
 
+    // Product expired yesterday
     product.onShelfDate = DateUtils.addDays(1, currentDate);
 
     product.isExpired.should.be.true;
     product.isPastSellIn.should.be.true;
     product.sellInDays?.should.equal(-1);
 
+    // Product expired 2 days ago
     const product2 = new Product({
       id: 'meat',
       name: 'Meat',
@@ -186,19 +184,39 @@ describe('Product', () => {
     product2.isPastSellIn.should.be.true;
     product.sellInDays?.should.equal(-1);
 
+    // Product expires today
     product2.onShelfDate = DateUtils.addDays(-2, currentDate);
+
     product2.isExpired.should.be.false;
     product2.isPastSellIn.should.be.false;
     product2.sellInDays?.should.equal(0);
 
+    // Product expired 3 days ago
     product2.onShelfDate = DateUtils.addDays(1, currentDate);
+
     product2.isExpired.should.be.true;
     product2.isPastSellIn.should.be.true;
     product2.sellInDays?.should.equal(-3);
 
+    // Product expired 7 days ago
     product2.onShelfDate = DateUtils.addDays(5, currentDate);
+
     product2.isExpired.should.be.true;
     product2.isPastSellIn.should.be.true;
     product2.sellInDays?.should.equal(-7);
+
+    // Product expires in 3 days
+    product2.onShelfDate = DateUtils.addDays(-5, currentDate);
+
+    product2.isExpired.should.be.false;
+    product2.isPastSellIn.should.be.false;
+    product2.sellInDays?.should.equal(3);
+
+    // Product expires in 1 day and it is past sellin
+    product2.onShelfDate = DateUtils.addDays(-1, currentDate);
+
+    product2.isExpired.should.be.false;
+    product2.isPastSellIn.should.be.true;
+    product2.sellInDays?.should.equal(-1);
   });
 });

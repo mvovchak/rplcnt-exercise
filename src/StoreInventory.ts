@@ -1,7 +1,7 @@
 'use strict';
 
 import Product from './Product';
-import DateUtils from './utils';
+import { DateUtils } from './utils';
 
 export default class StoreInventory {
   private _products: Product[] = [];
@@ -53,10 +53,10 @@ export default class StoreInventory {
       product.onShelfDate = new Date(this.currentDate);
 
       const newQuality = product.isPastSellIn
-        ? product.qualityChangePerDayAfterSellInDate.valueOf()
-        : product.qualityChangePerDay.valueOf();
+        ? product.qualityChangePerDayAfterSellInDate
+        : product.qualityChangePerDay;
 
-      product.currentQuality = product.currentQuality.valueOf() + newQuality;
+      product.currentQuality = product.currentQuality + newQuality;
     });
   }
 

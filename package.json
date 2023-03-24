@@ -5,7 +5,7 @@
   "main": "instructions.js",
   "scripts": {
     "start": "ts-node src/index.ts",
-    "test": "NODE_OPTIONS='--loader ts-node/esm' ./node_modules/.bin/mocha"
+    "test": "NODE_OPTIONS='--loader ts-node/esm' ./node_modules/.bin/nyc --reporter=text ./node_modules/.bin/mocha"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +24,7 @@
     "eslint-plugin-n": "^15.6.1",
     "eslint-plugin-promise": "^6.1.1",
     "mocha": "^10.2.0",
+    "nyc": "^15.1.0",
     "prettier": "2.8.4",
     "sinon": "^15.0.1",
     "sinon-chai": "^3.7.0",

@@ -1,5 +1,10 @@
 'use strict';
 
+/**
+ * Date Utilities
+ *
+ * @type {{ addDays: (days: number, date?: Date) => Date; getDaysBetweenDates: (start: Date, end: Date) => number; }}
+ */
 const DateUtils = {
   addDays: (days: number, date: Date = new Date()): Date => {
     const newDate = new Date(date.valueOf());
@@ -21,4 +26,4 @@ const DateUtils = {
   }
 };
 
-export default DateUtils;
+export { DateUtils };
